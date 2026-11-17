@@ -8,7 +8,8 @@ async def get_matrix(url: str) -> List[int]:
     обойденных по спирали против часовой стрелки.
     """
     try:
-        async with httpx.AsyncClient() as client:
+        # Добавляем timeout=10, чтобы запрос не висел бесконечно
+        async with httpx.AsyncClient(timeout=10) as client:
             response = await client.get(url)
             response.raise_for_status()
             
