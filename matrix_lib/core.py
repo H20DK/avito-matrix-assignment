@@ -24,14 +24,22 @@ async def get_matrix(url: str) -> List[int]:
         raise RuntimeError(f"Ошибка сети: {e}") from e
 
 def parse_matrix(text: str) -> List[List[int]]:
-    """Парсит текстовое представление матрицы."""
+    """Парсит текстовое представление матрицы со строгой проверкой типов."""
     rows = []
     for line in text.splitlines():
         if '|' in line:
-            # Убираем границы и лишние пробелы
             parts = [p.strip() for p in line.split('|')[1:-1]]
-            row = [int(x) for x in parts]
+            # Проверка: все ли элементы являются числами
+            try:
+                row = [int(x) for x in parts]
+            except ValueError:
+                raise ValueError(f"Ошибка парсинга: найдены нечисловые данные в строке: {line}")
             rows.append(row)
+    
+    # Проверка на квадратность (важно для корректного обхода спирали)
+    if rows and len(set(len(r) for r in rows)) > 1:
+        raise ValueError("Матрица не является квадратной или имеет рваные строки")
+        
     return rows
 
 def traverse_spiral_ccw(matrix: List[List[int]]) -> List[int]:
