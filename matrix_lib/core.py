@@ -1,14 +1,15 @@
 import asyncio
-from typing import List
+import numpy as np
+from typing import List, Union
 import httpx
 
-async def get_matrix(url: str) -> List[int]:
+# Изменяем интерфейс функции
+async def get_matrix(url: str, use_numpy: bool = False) -> Union[List[int], np.ndarray]:
     """
-    Асинхронно скачивает матрицу с сервера и возвращает список элементов,
-    обойденных по спирали против часовой стрелки.
+    Асинхронно скачивает матрицу с сервера.
+    :param use_numpy: Если True, возвращает результат как numpy array
     """
     try:
-        # Добавляем timeout=10, чтобы запрос не висел бесконечно
         async with httpx.AsyncClient(timeout=10) as client:
             response = await client.get(url)
             response.raise_for_status()
@@ -16,7 +17,12 @@ async def get_matrix(url: str) -> List[int]:
             text = response.text
             matrix = parse_matrix(text)
             
-            return traverse_spiral_ccw(matrix)
+            result_list = traverse_spiral_ccw(matrix)
+            
+            # Возвращаем numpy array, если это нужно смежной роли
+            if use_numpy:
+                return np.array(result_list)
+            return result_list
             
     except httpx.HTTPStatusError as e:
         raise RuntimeError(f"Ошибка сервера: {e.response.status_code}") from e
